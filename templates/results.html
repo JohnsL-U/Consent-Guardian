@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Analysis Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="introduction">
+        <div class="container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='CG-Logo.png') }}" alt="Logo" width="200">
+            </div>
+            <div class="title-box font">
+                <h1>Analysis Results</h1>
+            </div>
+
+            <div class="content">
+                <p><strong>Rating:</strong> {{ rating }}</p>
+                <p><strong>Summary:</strong> {{ summary }}</p>
+                <a href="/">Back to Home</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
