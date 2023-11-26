@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Guardian</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="introduction">
+        <div class="container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='CG-Logo.png') }}" alt="Logo" width="200">
+            </div>
+
+            <div class="title-box font">
+                <h1>Document Fairness and Privacy Rating Agent</h1>
+            </div>
+            <div class="content">
+                <form action="/process" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="document">Upload your document:</label>
+                        <input type="file" id="document" name="document" accept=".txt, .pdf, .docx">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Rate Document</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
