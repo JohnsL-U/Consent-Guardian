@@ -1,5 +1,9 @@
 # Dataset used for testing
 dataset/
+
+# Images
+*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
