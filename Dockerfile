@@ -13,12 +13,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the app
 COPY . .
 
+# Copy .env file
+COPY .env .env
+
 # Make port 8501 available to the world outside this container
 EXPOSE 8501
 
-# Define environment variable
-ENV NAME World
-
 # Run main.py when the container launches
 CMD ["streamlit", "run", "main.py"]
+
+
+
+
+
+
 
