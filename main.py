@@ -1,6 +1,9 @@
 import langchain_helper as lch
 import streamlit as st
 import time
+import PyPDF2
+from bs4 import BeautifulSoup
+import io
 
 if 'processing' not in st.session_state:
   st.session_state.processing = False
@@ -33,9 +36,28 @@ with st.sidebar:
   openai_api_key = st.text_input("OpenAI API Key", type="password")
   "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
 
+
+def read_pdf(file):
+  """Read and convert a PDF file to text."""
+  reader = PyPDF2.PdfReader(file)
+  text = ""
+  for page in range(len(reader.pages)):
+      text += reader.pages[page].extract_text() + "\n"
+  return text
+
+def read_html(file):
+  """Read and convert an HTML file to text."""
+  soup = BeautifulSoup(file, 'html.parser')
+  return soup.get_text()
+
 uploaded_file = st.file_uploader("Upload your document", type=['txt', 'pdf', 'docx'])
 if uploaded_file is not None:
-  document_content = uploaded_file.read().decode("utf-8")
+  if uploaded_file.type == "application/pdf":
+    document_content = read_pdf(uploaded_file)
+  elif uploaded_file.type == "text/html":
+    document_content = read_html(uploaded_file.getvalue().decode("utf-8"))
+  else:
+    document_content = uploaded_file.read().decode("utf-8")
 
   if st.button('Process') and openai_api_key:
       st.session_state.processing = True
