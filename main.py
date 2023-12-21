@@ -20,9 +20,11 @@ st.subheader("Where fairness meets privacy...")
 action_type = st.sidebar.selectbox("What could Consent Guardian do to help you today?", ("Summarize", "On a scale of 1-10 Rate", "Answer Questions About"))
 user_input = st.sidebar.text_area("Enter your specific requirements:", max_chars=100)
 
-with st.sidebar:
-  openai_api_key = st.text_input("OpenAI API Key", type="password")
-  "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
+openai_api_key = ""
+if action_type != "Summarize":
+    openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
+    if openai_api_key:
+        st.sidebar.markdown("[Get an OpenAI API key](https://platform.openai.com/account/api-keys)")
 
 # Function to read different document types
 def read_pdf(file):
@@ -47,7 +49,7 @@ if uploaded_file is not None:
     document_content = uploaded_file.read().decode("utf-8")
 
 # Process Button
-if st.button('Process') and openai_api_key and document_content:
+if st.button('Process') and ((action_type == "Summarize") or (action_type != "Summarize" and openai_api_key)) and document_content:
     st.session_state.processing = True
     st.session_state.feedback_given = False
     progress_bar = st.progress(0)
