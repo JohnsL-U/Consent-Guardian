@@ -1,34 +1,51 @@
 import langchain_helper as lch
 import streamlit as st
 import time
-import PyPDF2
+import pypdf
 from bs4 import BeautifulSoup
-import io
+import base64
+import utilities as utl
+import streamlit.components.v1 as components
 
-if 'processing' not in st.session_state:
-  st.session_state.processing = False
-if 'feedback_given' not in st.session_state:
-  st.session_state.feedback_given = False
-if 'initial_response' not in st.session_state:
-  st.session_state.initial_response = None
 
-image_path = 'https://private-user-images.githubusercontent.com/93824716/281902819-365092b7-f5ab-4807-ac91-043bda15d158.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDE5MTAwODUsIm5iZiI6MTcwMTkwOTc4NSwicGF0aCI6Ii85MzgyNDcxNi8yODE5MDI4MTktMzY1MDkyYjctZjVhYi00ODA3LWFjOTEtMDQzYmRhMTVkMTU4LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA3VDAwNDMwNVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWQ0ODFiNzQ0NTQ1MmM0NzgyYjZkNjFiN2Q2ZDdkZDdhOWE4MjkxMGU2ZTQ2YmQ2OTJmYzBiMDFiYWUzOWNjZDImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.IS7dOH8ed-z1SNehga-9wuKCSiO2whqHR6yO7mosKyk'
-st.image(image_path, width=300) 
-st.title("Your shield in the digital realm!")
-st.subheader("Where fairness meets privacy...")
-  
-action_type = st.sidebar.selectbox("What could Consent Guardian do to help you today?", ("Summarize", "On a scale of 1-10 Rate", "Answer Questions About"))
-user_input = st.sidebar.text_area("Enter your specific requirements:", max_chars=100)
+st.set_page_config(
+	page_icon='CG-Logo.png', 
+	layout="wide",
+	page_title='Consent Guardian',
+	initial_sidebar_state="expanded"
+)
 
-openai_api_key = ""
-if action_type != "Summarize":
-    openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-    if openai_api_key:
-        st.sidebar.markdown("[Get an OpenAI API key](https://platform.openai.com/account/api-keys)")
+def get_image_base64(path):
+    with open(path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode()
+    return "data:image/png;base64," + encoded
+
+image_path = 'CG-Logo.png'
+base64_image = get_image_base64(image_path)
+
+html_content = f"""
+<div class="header" style="text-align: center;">
+    <figure>
+      <img src="{base64_image}" alt="Logo" style="height: 200px;" />
+      <h1>Welcome to Consent Guardian!</h1>
+    </figure>
+    <h3>Your shield in the digital realm!</h3>
+</div>
+"""
+
+st.markdown(html_content, unsafe_allow_html=True)
+
+def load_css():
+  #Function to load CSS.
+  utl.local_css("styles.css")
+  utl.remote_css('https://fonts.googleapis.com/icon?family=Material+Icons')
+  utl.remote_css('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;600;700&display=swap')
+
+load_css()
 
 # Function to read different document types
 def read_pdf(file):
-  reader = PyPDF2.PdfReader(file)
+  reader = pypdf.PdfReader(file)
   text = ""
   for page in range(len(reader.pages)):
       text += reader.pages[page].extract_text() + "\n"
@@ -38,49 +55,92 @@ def read_html(file):
   soup = BeautifulSoup(file, 'html.parser')
   return soup.get_text()
 
-uploaded_file = st.file_uploader("Upload your document", type=['txt', 'pdf', 'docx'])
-document_content = None
-if uploaded_file is not None:
-  if uploaded_file.type == "application/pdf":
-    document_content = read_pdf(uploaded_file)
-  elif uploaded_file.type == "text/html":
-    document_content = read_html(uploaded_file.getvalue().decode("utf-8"))
-  else:
-    document_content = uploaded_file.read().decode("utf-8")
+def run_streamlit_app():
 
-# Process Button
-if st.button('Process') and ((action_type == "Summarize") or (action_type != "Summarize" and openai_api_key)) and document_content:
-    st.session_state.processing = True
+  if 'processing' not in st.session_state:
+    st.session_state.processing = False
+  if 'feedback_given' not in st.session_state:
     st.session_state.feedback_given = False
-    progress_bar = st.progress(0)
-    for percentage_completed in range(100):
-        time.sleep(0.05)
-        progress_bar.progress(percentage_completed + 1)
-    response = lch.process_document(action_type, user_input, openai_api_key, document_content)
-    st.session_state.initial_response = response.get("response", "")
-    st.success("Document processed successfully!")
-    st.markdown("## Analysis Results")
-    st.text_area("#### Uploaded Document:", value=document_content, height=200)
-    st.text_area("#### Response:", value=st.session_state.initial_response, height=200)
+  if 'initial_response' not in st.session_state:
+    st.session_state.initial_response = None
 
-# Feedback and Reprocessing Logic
-if st.session_state.processing and not st.session_state.feedback_given:
-    st.markdown("#### Feedback")
-    if st.button('👍'):
-        st.session_state.feedback_given = True
-        st.info("Thank you for your feedback!")
-    elif st.button('👎'):
-        st.session_state.feedback_given = True
-        st.session_state.processing = False  
-        st.info("Please wait while we are improving your results!")
-        improved_response = lch.process_document(action_type, user_input, openai_api_key, document_content, feedback='negative', initial_response=st.session_state.initial_response)
-        st.success("Document reprocessed successfully!")
-        st.markdown("#### Improved Analysis Results")
-        st.text_area(value=improved_response.get("response", ""), height=200)
 
-# Additional UI Elements
-if not document_content:
-    st.warning("Please upload a document.")
-elif not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.")
+  # Ask for the OpenAI API key
+  openai_api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
+  if not openai_api_key:
+      st.sidebar.markdown("[Get an OpenAI API key](https://platform.openai.com/account/api-keys)")
 
+  with st.expander("How to use 🦾", expanded=False):
+
+    st.markdown(
+      """
+      Please refer to [our dedicated guide](https://github.com/JohnsL-U/Consent-Guardian/blob/main/README.md).
+      """
+      )
+
+  # Chatbot Interface
+  st.markdown("## 🤖 Guardian Chatbot")
+  chatbot_query = st.text_input("Ask me anything about the document:")
+  if st.button("Ask Guardian"):
+      if 'uploaded_document' in st.session_state:
+          # Process the chatbot query
+          chatbot_response = lch.process_chatbot_query(chatbot_query, st.session_state.uploaded_document, openai_api_key)
+          st.text_area("Chatbot Response:", value=chatbot_response, height=100)
+      else:
+          st.warning("Please upload a document first.")
+
+  uploaded_file = st.sidebar.file_uploader("Upload your document", type=['txt', 'pdf', 'docx'])
+  document_content = None
+  if uploaded_file is not None:
+    if uploaded_file.type == "application/pdf":
+      document_content = read_pdf(uploaded_file)
+    elif uploaded_file.type == "text/html":
+      document_content = read_html(uploaded_file.getvalue().decode("utf-8"))
+    else:
+      document_content = uploaded_file.read().decode("utf-8")
+
+    # Update session state with the uploaded document
+    st.session_state.uploaded_document = document_content
+
+  # Select the type of summary needed for the legal document
+  summary_type = st.sidebar.selectbox("Select the type of summary you need for your document:", ("Executive Summary", "Key Points", "Detailed Analysis"))
+
+  # Process Button
+  if st.sidebar.button('Process') and openai_api_key and document_content:
+      st.session_state.processing = True
+      st.session_state.feedback_given = False
+      progress_bar = st.progress(0)
+      for percentage_completed in range(100):
+          time.sleep(0.05)
+          progress_bar.progress(percentage_completed + 1)
+      response = lch.process_document(summary_type, openai_api_key, document_content)
+      st.session_state.initial_response = response.get("response", "")
+      st.success("Document processed successfully!")
+      st.markdown("## Analysis Results")
+      st.text_area("#### Uploaded Document:", value=document_content, height=200)
+      st.text_area("#### Response:", value=st.session_state.initial_response, height=200)
+
+
+  # Sidebar - Feedback Section
+  if st.session_state.processing and not st.session_state.feedback_given:
+    st.sidebar.markdown("### Feedback")
+    if st.sidebar.button('👍'):
+        st.sidebar.info("Thank you for your feedback!")
+
+    elif st.sidebar.button('👎'):
+        improved_response = lch.process_document(summary_type, openai_api_key, document_content, feedback='negative', initial_response=st.session_state.initial_response)
+        # Store improved results and display in the main section
+        if 'improved_response' in locals():
+            st.session_state.improved_results = improved_response.get("response", "")
+            st.success("Document reprocessed successfully!")
+            st.text_area("### Improved Analysis Results", value=st.session_state.improved_results, height=200)
+
+  # Additional UI Elements
+  if not document_content:
+      st.warning("Please upload a document.")
+  elif not openai_api_key:
+      st.warning("Please add your OpenAI API key to continue.")
+
+
+if __name__ == "__main__":
+  run_streamlit_app()
