@@ -4,10 +4,10 @@ FROM python:3.8
 WORKDIR /app
 
 # Copy the requirements file into the container at /app
-COPY flask/requirements-flask.txt .
+COPY requirements.txt .
 
 # Install any needed packages specified in requirements-flask.txt
-RUN pip install -r requirements-flask.txt
+RUN pip install -r requirements.txt
 
 # Copy the rest of your flask folder into the container at /app
 COPY flask/ .
