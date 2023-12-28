@@ -6,6 +6,7 @@ services:
       dockerfile: streamlit/Dockerfile
     ports:
       - "80:8501"
+    restart: unless-stopped 
   
   flask:
     build:
@@ -13,3 +14,5 @@ services:
       dockerfile: flask/Dockerfile
     ports:
       - "8502:8502"
+    restart: unless-stopped  
+
