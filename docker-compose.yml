@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: streamlit/Dockerfile
     ports:
-      - "8501:8501"
+      - "80:8501"
   
   flask:
     build:
