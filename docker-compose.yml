@@ -1,0 +1,15 @@
+version: '3'
+services:
+  streamlit:
+    build:
+      context: .
+      dockerfile: streamlit/Dockerfile
+    ports:
+      - "8501:8501"
+  
+  flask:
+    build:
+      context: .
+      dockerfile: flask/Dockerfile
+    ports:
+      - "8502:8502"
