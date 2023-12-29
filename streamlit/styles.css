@@ -30,7 +30,7 @@ figcaption {
     color: #FFF !important;
 }
 .appview-container>section:not(.main) .stSelectbox > div > div * {
-    color: #222B54 !important;
+    color: #FFF !important;
 }
 
 figure {
